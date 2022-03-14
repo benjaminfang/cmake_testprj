@@ -12,6 +12,7 @@ message(STATUS "CPU_ARCH: " ${CMAKE_HOST_SYSTEM_PROCESSOR})
 message("")
 
 #information of operation system
+message(STATUS ${CMAKE_HOST_SYSTEM})
 if (UNIX)
     set(system "UNIX-like")
 elseif(APPLE)
@@ -25,8 +26,8 @@ message(STATUS "OS: " ${system})
 message("")
 
 #information of compilation toolchain
-message(STATUS "CMAKE_C_COMPILER:  " ${CMAKE_C_COMPILER} " " ${CMAKE_C_COMPILER_VERSION} " " ${CMAKE_C_STANDARD})
-message(STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER} " " ${CMAKE_CXX_COMPILER_VERSION} " " ${CMAKE_CXX_STANDARD})
+message(STATUS "CMAKE_C_COMPILER:  " ${CMAKE_C_COMPILER} " " ${CMAKE_C_COMPILER_ID} ":" ${CMAKE_C_COMPILER_VERSION} " " ${CMAKE_C_STANDARD})
+message(STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER} " " ${CMAKE_CXX_COMPILER_ID} ":" ${CMAKE_CXX_COMPILER_VERSION} " " ${CMAKE_CXX_STANDARD})
 message(STATUS "CMAKE_AR: " ${CMAKE_AR})
 message(STATUS "CMAKE_RANLIB: " ${CMAKE_RANLIB})
 message(STATUS "CMAKE_COMMAND: " ${CMAKE_COMMAND})
@@ -109,11 +110,27 @@ add_subdirectory(function_sub)
 add_executable(test ${PRJ_SOURCE_DIR}/main.c ${PRJ_SOURCE_DIR}/add.c)
 
 
-#compile and link
-target_compile_options(test PRIVATE "-O0")
-target_include_directories(test PRIVATE ${gsl_include_dir} PRIVATE ${testlib_include_dir})
-target_link_directories(test PRIVATE ${gsl_lib_dir} PRIVATE ${testlib_lib_dir})
-target_link_libraries(test -Wl,--start-group gsl.a gslcblas.a -Wl,--end-group multi.a sub m)
+#build under different arch, system and compiler.
+if (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    if (system STREQUAL "UNIX-like")
+        message(STATUS "build for x86_64 UNIX-like")
+        if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+            #compile and link
+            target_compile_options(test PRIVATE "-O0")
+            target_include_directories(test PRIVATE ${gsl_include_dir} PRIVATE ${testlib_include_dir})
+            target_link_directories(test PRIVATE ${gsl_lib_dir} PRIVATE ${testlib_lib_dir})
+            target_link_libraries(test -Wl,--start-group gsl.a gslcblas.a -Wl,--end-group multi.a sub m)
+
+        elseif (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        endif()
+    elseif (system STREQUAL "macOS")
+    elseif(system STREQUAL "windows")
+    endif()
+elseif (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    message(" ")
+else()
+    message("Only x86_64 and aarch64 CPU was supported")
+endif()
 
 
 #installation
